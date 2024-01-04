@@ -1,0 +1,14 @@
+/.vs
+/ALL_BUILD.vcxproj
+/ALL_BUILD.vcxproj.filters
+/CMakeCache.txt
+/CMakeFiles
+/cmake_install.cmake
+/Debug
+/DesktopCaptureApp.dir
+/DesktopCaptureApp.sln
+/DesktopCaptureApp.vcxproj
+/DesktopCaptureApp.vcxproj.filters
+/x64
+/ZERO_CHECK.proj
+/ZERO_CHECK.proj.filters

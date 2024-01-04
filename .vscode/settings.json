@@ -1,0 +1,5 @@
+{
+    "clangd.fallbackFlags": [
+        " \"-IC:/MinGW/include/\""
+    ]
+}
