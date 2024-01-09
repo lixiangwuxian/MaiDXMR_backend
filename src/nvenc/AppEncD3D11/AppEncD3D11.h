@@ -30,6 +30,7 @@ using Microsoft::WRL::ComPtr;
 simplelogger::Logger *logger =
     simplelogger::LoggerFactory::CreateConsoleLogger();
 
+typedef void (*UdpSendCallBack)(const std::vector<uint8_t> &);
 class RGBToNV12ConverterD3D11 {
 public:
   RGBToNV12ConverterD3D11(ID3D11Device *pDevice, ID3D11DeviceContext *pContext,
@@ -140,6 +141,7 @@ public:
   ID3D11Texture2D *pSourceTex = NULL;
   NvEncoderD3D11 *p_enc;
   std::mutex mutex;
+  UdpSendCallBack udpSendCallBack;
   // Gdiplus::Bitmap *bitmap;
   // Gdiplus::BitmapData bitmapData;
   int totalSize = 0;
@@ -150,9 +152,10 @@ public:
   int nWidth;
   int nHeight;
   SimpleEncoder(int nWidth, int nHeight, NvEncoderInitParam *pEncodeCLIOptions,
-                int iGpu, bool bForceNv12) {
+                int iGpu, bool bForceNv12, UdpSendCallBack udpSendCallBack) {
     this->nWidth = nWidth;
     this->nHeight = nHeight;
+    this->udpSendCallBack = udpSendCallBack;
     ck(CreateDXGIFactory1(__uuidof(IDXGIFactory1),
                           (void **)pFactory.GetAddressOf()));
     ck(pFactory->EnumAdapters(iGpu, pAdapter.GetAddressOf()));
@@ -252,7 +255,8 @@ public:
     p_enc->EncodeFrame(vPacket);
     nFrame += (int)vPacket.size();
     for (std::vector<uint8_t> &packet : vPacket) {
-      fpOut.write(reinterpret_cast<char *>(packet.data()), packet.size());
+      // fpOut.write(reinterpret_cast<char *>(packet.data()), packet.size());
+      udpSendCallBack(packet);
       std::cout << "packet.size():" << packet.size() << std::endl;
       totalSize += packet.size();
     }
