@@ -26,23 +26,25 @@ public:
   }
 
   void send(const std::vector<uint8_t> &data) {
-    int dataLength = static_cast<int>(data.size());
+    // int dataLength = static_cast<int>(data.size());
 
-    // 将长度信息转换为字节
-    std::vector<uint8_t> lengthBytes(sizeof(dataLength));
-    for (size_t i = 0; i < sizeof(dataLength); ++i) {
-      lengthBytes[i] = (dataLength >> (i * 8)) & 0xFF;
-    }
+    // // 将长度信息转换为字节
+    // std::vector<uint8_t> lengthBytes(sizeof(dataLength));
+    // for (size_t i = 0; i < sizeof(dataLength); ++i) {
+    //   lengthBytes[i] = (dataLength >> (i * 8)) & 0xFF;
+    // }
 
-    // 将长度字节和数据组合到一起
-    std::vector<uint8_t> sendData;
-    sendData.reserve(lengthBytes.size() + data.size());
-    sendData.insert(sendData.end(), lengthBytes.begin(), lengthBytes.end());
-    sendData.insert(sendData.end(), data.begin(), data.end());
+    // // 将长度字节和数据组合到一起
+    // std::vector<uint8_t> padding(4, 0);
+    // std::vector<uint8_t> sendData;
+    // sendData.reserve(lengthBytes.size() + data.size());
+    // sendData.insert(sendData.end(), lengthBytes.begin(), lengthBytes.end());
+    // sendData.insert(sendData.end(), data.begin(), data.end());
+    // sendData.insert(sendData.end(), padding.begin(), padding.end());
 
     // 发送组合后的数据
-    sendto(sock, reinterpret_cast<const char *>(sendData.data()),
-           sendData.size(), 0, reinterpret_cast<sockaddr *>(&serverAddr),
+    sendto(sock, reinterpret_cast<const char *>(data.data()),
+           data.size(), 0, reinterpret_cast<sockaddr *>(&serverAddr),
            sizeof(serverAddr));
   }
 

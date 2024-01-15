@@ -26,6 +26,8 @@ int nHeight = 1050;
 
 SimpleEncoder *sc;
 using namespace Gdiplus;
+//192.168.6.197//v50
+//192.168.6.109//quest
 UDPClient *client= new UDPClient("192.168.6.109",10890);
 
 void SaveHBITMAPToFile(HBITMAP hBitmap, LPCWSTR filename) {
@@ -49,9 +51,8 @@ void MyUdpSend(const std::vector<uint8_t> &data) {
 }
 
 int nv_enc_main() {
-  char szOutFilePath[256] = "out.h264";
   try {
-    NvEncoderInitParam encodeCLIOptions;
+    NvEncoderInitParam encodeCLIOptions("",NULL,false);
     int iGpu = 0;
     bool bForceNv12 = false;
     sc=new SimpleEncoder( nWidth, nHeight, &encodeCLIOptions, iGpu,
@@ -62,9 +63,6 @@ int nv_enc_main() {
   }
   return 0;
 }
-
-
-
 
 int main() {
   AllocConsole();
@@ -79,7 +77,7 @@ int main() {
   // int FramesToCapture = 1200;
   while (true) {
     capturer.StartCapture();
-    Sleep(4);
+    Sleep(1000/120);
     // FramesToCapture--;
   }
   sc->EndCompress();

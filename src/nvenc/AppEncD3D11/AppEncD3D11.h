@@ -261,7 +261,8 @@ public:
       totalSize += packet.size();
     }
     pContext->Release();
+    bitmap->UnlockBits(&bitmapData);
+    delete bitmap;
     Gdiplus::GdiplusShutdown(gdiplusToken);
-    // bitmap->UnlockBits(&bitmapData);
   }
 };
