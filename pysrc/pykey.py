@@ -8,7 +8,7 @@ class KeyboardSimulator:
         def get_key(key_code):
             if key_code==51:
                 return '3'
-            if key_code==145:
+            if key_code==0:
                 return Key.scroll_lock
             if key_code==19:
                 return Key.pause

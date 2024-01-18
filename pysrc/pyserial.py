@@ -13,7 +13,7 @@ class SerialManager:
     settingPacket = bytearray([40, 0, 0, 0, 0, 41])
     touchData = bytearray([40, 0, 0, 0, 0, 0, 0, 0, 41])
     touchData2 = bytearray([40, 0, 0, 0, 0, 0, 0, 0, 41])
-    startUp = False  # use True for default start up state to prevent restart game
+    startUp = True  # use True for default start up state to prevent restart game
     recivData = ''
     touchQueue = queue.Queue()
     shutdown=False
