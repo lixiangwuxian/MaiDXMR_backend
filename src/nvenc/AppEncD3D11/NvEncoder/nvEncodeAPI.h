@@ -211,11 +211,11 @@ static const GUID NV_ENC_PRESET_BD_GUID  =
 { 0x82e3e450, 0xbdbb, 0x4e40, { 0x98, 0x9c, 0x82, 0xa9, 0xd, 0xf9, 0xef, 0x32 } };
 
 // {49DF21C5-6DFA-4feb-9787-6ACC9EFFB726}
-static const GUID NV_ENC_PRESET_LOW_LATENCY_DEFAULT_GUID  = 
+static const GUID NV_ENC_PRESET_LOW_LATENCY_DEFAULT_GUID  =
 { 0x49df21c5, 0x6dfa, 0x4feb, { 0x97, 0x87, 0x6a, 0xcc, 0x9e, 0xff, 0xb7, 0x26 } };
 
 // {C5F733B9-EA97-4cf9-BEC2-BF78A74FD105}
-static const GUID NV_ENC_PRESET_LOW_LATENCY_HQ_GUID  = 
+static const GUID NV_ENC_PRESET_LOW_LATENCY_HQ_GUID  =
 { 0xc5f733b9, 0xea97, 0x4cf9, { 0xbe, 0xc2, 0xbf, 0x78, 0xa7, 0x4f, 0xd1, 0x5 } };
 
 // {67082A44-4BAD-48FA-98EA-93056D150A58}
@@ -3032,7 +3032,7 @@ NVENCSTATUS NVENCAPI NvEncDestroyEncoder                        (void* encoder);
  * using the corrupt frame as invalid for motion estimation and uses older reference
  * frames for motion estimation. The encoded forces the current frame to be encoded
  * as an intra frame if no reference frames are left after invalidation process.
- * This is useful for low latency application for error resiliency. The client 
+ * This is useful for low latency application for error resiliency. The client
  * is recommended to set NV_ENC_CONFIG_H264::maxNumRefFrames to a large value so 
  * that encoder can keep a backup of older reference frames in the DPB and can use them
  * for motion estimation when the newer reference frames have been invalidated.

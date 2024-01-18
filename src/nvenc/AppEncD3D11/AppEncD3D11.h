@@ -226,11 +226,11 @@ public:
     Gdiplus::Rect rect(0, 0, bitmap->GetWidth(), bitmap->GetHeight());
     bitmap->LockBits(&rect, Gdiplus::ImageLockModeRead, PixelFormat32bppARGB,
                      &bitmapData);
-    std::cout << "bitmap->GetWidth():" << bitmapData.Width << std::endl;
-    std::cout << "bitmap->GetHeight():" << bitmapData.Height << std::endl;
+    // std::cout << "bitmap->GetWidth():" << bitmapData.Width << std::endl;
+    // std::cout << "bitmap->GetHeight():" << bitmapData.Height << std::endl;
     D3D11_TEXTURE2D_DESC desc;
-    desc.Width = bitmapData.Width;
-    desc.Height = bitmapData.Height;
+    desc.Width = nWidth;
+    desc.Height = nHeight;
     desc.MipLevels = 1;
     desc.ArraySize = 1;
     desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -257,6 +257,9 @@ public:
     for (std::vector<uint8_t> &packet : vPacket) {
       // fpOut.write(reinterpret_cast<char *>(packet.data()), packet.size());
       udpSendCallBack(packet);
+      if (nFrame==1){
+        udpSendCallBack(packet);
+      }
       std::cout << "packet.size():" << packet.size() << std::endl;
       totalSize += packet.size();
     }

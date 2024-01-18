@@ -16,14 +16,14 @@ def main():
     # 监听并打印接收到的消息
     while True:
         try:
-            data, address = sock.recvfrom(4)
+            data, _ = sock.recvfrom(4)
             input_type = data[0]
             key_code = data[1]
             is_pressed = data[2] == 1
             print(f"input_type:{input_type},key_code:{key_code},is_pressed:{is_pressed}")
             if input_type == 0:
                 serialManager.change_touch(True, key_code, is_pressed)
-                serialManager.ping_touch_thread()
+                # serialManager.ping_touch_thread()
             elif input_type == 1:
                 keyboardSim.press_or_release_key(key_code, is_pressed)
         except:

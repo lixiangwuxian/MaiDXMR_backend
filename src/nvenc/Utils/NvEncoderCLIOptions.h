@@ -50,30 +50,30 @@ public:
             std::istream_iterator<std::string>() 
         };
 
-        for (unsigned i = 0; i < tokens.size(); i++)
-        {
-            if (tokens[i] == "-codec" && ++i != tokens.size())
-            {
-                ParseString("-codec", tokens[i], vCodec, szCodecNames, &guidCodec);
-                continue;
-            }
-            if (bLowLatency)
-            {
-                if (tokens[i] == "-preset" && ++i != tokens.size()) {
-                    ParseString("-preset", tokens[i], vLowLatencyPreset, szLowLatencyPresetNames, &guidPreset);
-                    continue;
-                }
-            }
-            else
-            {
-                if (tokens[i] == "-preset" && ++i != tokens.size()) {
-                    ParseString("-preset", tokens[i], vPreset, szPresetNames, &guidPreset);
-                    continue;
-                }
-            }
-        }
+        // for (unsigned i = 0; i < tokens.size(); i++)
+        // {
+        //     if (tokens[i] == "-codec" && ++i != tokens.size())
+        //     {
+        //         ParseString("-codec", tokens[i], vCodec, szCodecNames, &guidCodec);
+        //         continue;
+        //     }
+        //     if (bLowLatency)
+        //     {
+        //         if (tokens[i] == "-preset" && ++i != tokens.size()) {
+        //             ParseString("-preset", tokens[i], vLowLatencyPreset, szLowLatencyPresetNames, &guidPreset);
+        //             continue;
+        //         }
+        //     }
+        //     else
+        //     {
+        //         if (tokens[i] == "-preset" && ++i != tokens.size()) {
+        //             ParseString("-preset", tokens[i], vPreset, szPresetNames, &guidPreset);
+        //             continue;
+        //         }
+        //     }
+        // }
 
-        if (bLowLatency) guidPreset = NV_ENC_PRESET_LOW_LATENCY_DEFAULT_GUID;
+        if (bLowLatency) guidPreset = NV_ENC_PRESET_LOW_LATENCY_HQ_GUID;
     }
     virtual ~NvEncoderInitParam() {}
     virtual bool IsCodecH264() {
@@ -326,7 +326,7 @@ private:
     std::function<void(NV_ENC_INITIALIZE_PARAMS *pParams)> funcInit = [](NV_ENC_INITIALIZE_PARAMS *pParams){};
     std::vector<std::string> tokens;
     GUID guidCodec = NV_ENC_CODEC_H264_GUID;
-    GUID guidPreset = NV_ENC_PRESET_DEFAULT_GUID;
+    GUID guidPreset = NV_ENC_PRESET_HQ_GUID;
     bool bLowLatency = false;
     
     const char *szCodecNames = "h264 hevc";
