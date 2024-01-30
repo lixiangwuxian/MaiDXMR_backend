@@ -13,8 +13,8 @@
 #include "../Utils/Logger.h"
 #include "../Utils/NvCodecUtils.h"
 #include "NvEncoder/NvEncoderD3D11.h"
-#include <Gdipluspixelformats.h>
 #include <GdiPlus.h>
+#include <Gdipluspixelformats.h>
 #include <d3d11.h>
 #include <iostream>
 #include <memory>
@@ -24,6 +24,7 @@
 #include <unordered_map>
 #include <wingdi.h>
 #include <wrl.h>
+
 
 using Microsoft::WRL::ComPtr;
 
@@ -146,7 +147,7 @@ public:
   // Gdiplus::BitmapData bitmapData;
   int totalSize = 0;
   bool endCompress = false;
-  std::vector<std::vector<uint8_t>> vPacket;
+  // std::vector<std::vector<uint8_t>> vPacket;
   int nFrame = 0;
   std::ofstream fpOut;
   int nWidth;
@@ -156,12 +157,12 @@ public:
     this->nWidth = nWidth;
     this->nHeight = nHeight;
     this->udpSendCallBack = udpSendCallBack;
-    ck(CreateDXGIFactory1(__uuidof(IDXGIFactory1),
-                          (void **)pFactory.GetAddressOf()));
-    ck(pFactory->EnumAdapters(iGpu, pAdapter.GetAddressOf()));
-    ck(D3D11CreateDevice(pAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, NULL,
-                         0, D3D11_SDK_VERSION, pDevice.GetAddressOf(), NULL,
-                         pContext.GetAddressOf()));
+    CreateDXGIFactory1(__uuidof(IDXGIFactory1),
+                       (void **)pFactory.GetAddressOf());
+    pFactory->EnumAdapters(iGpu, pAdapter.GetAddressOf());
+    D3D11CreateDevice(pAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, NULL, 0,
+                      D3D11_SDK_VERSION, pDevice.GetAddressOf(), NULL,
+                      pContext.GetAddressOf());
     DXGI_ADAPTER_DESC adapterDesc;
     pAdapter->GetDesc(&adapterDesc);
     char szDesc[80];
@@ -202,7 +203,6 @@ public:
       err << "Unable to open output file: " << szOutFilePath << std::endl;
       throw std::invalid_argument(err.str());
     }
-
   }
 
   void EndCompress() {
@@ -216,6 +216,8 @@ public:
               << "Saved in file " << szOutFilePath << std::endl;
   }
   void ConvertHBitmapToTexture(HBITMAP hBitmap) {
+
+     std::vector<std::vector<uint8_t>> vPacket;
     int nSize = nWidth * nHeight * 4;
     std::cout << "ConvertHBitmapToTexture" << std::endl;
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -244,28 +246,33 @@ public:
     pDevice->GetImmediateContext(&pContext);
     const NvEncInputFrame *encoderInputFrame = p_enc->GetNextInputFrame();
     D3D11_MAPPED_SUBRESOURCE map;
-    ck(pContext->Map(pTexSysMem.Get(), D3D11CalcSubresource(0, 0, 1), D3D11_MAP_WRITE, 0, &map));
-    for (int y = 0; y < nHeight; y++)
-    {
-        memcpy((uint8_t *)map.pData + y * map.RowPitch, (uint8_t *)bitmapData.Scan0 + y * nWidth * 4, nWidth * 4);
+    ck(pContext->Map(pTexSysMem.Get(), D3D11CalcSubresource(0, 0, 1),
+                     D3D11_MAP_WRITE, 0, &map));
+    for (int y = 0; y < nHeight; y++) {
+      memcpy((uint8_t *)map.pData + y * map.RowPitch,
+             (uint8_t *)bitmapData.Scan0 + y * nWidth * 4, nWidth * 4);
     }
     pContext->Unmap(pTexSysMem.Get(), D3D11CalcSubresource(0, 0, 1));
-        ID3D11Texture2D *pTexBgra = reinterpret_cast<ID3D11Texture2D*>(encoderInputFrame->inputPtr);
-        pContext->CopyResource(pTexBgra, pTexSysMem.Get());
+    ID3D11Texture2D *pTexBgra =
+        reinterpret_cast<ID3D11Texture2D *>(encoderInputFrame->inputPtr);
+    pContext->CopyResource(pTexBgra, pTexSysMem.Get());
     p_enc->EncodeFrame(vPacket);
+    send_frame(vPacket);
+    pContext->Release();
+    bitmap->UnlockBits(&bitmapData);
+    delete bitmap;
+    Gdiplus::GdiplusShutdown(gdiplusToken);
+  }
+  void send_frame(std::vector<std::vector<uint8_t>> vPacket){
     nFrame += (int)vPacket.size();
     for (std::vector<uint8_t> &packet : vPacket) {
       // fpOut.write(reinterpret_cast<char *>(packet.data()), packet.size());
       udpSendCallBack(packet);
-      if (nFrame==1){
+      if (nFrame == 1) {
         udpSendCallBack(packet);
       }
       std::cout << "packet.size():" << packet.size() << std::endl;
       totalSize += packet.size();
     }
-    pContext->Release();
-    bitmap->UnlockBits(&bitmapData);
-    delete bitmap;
-    Gdiplus::GdiplusShutdown(gdiplusToken);
   }
 };
