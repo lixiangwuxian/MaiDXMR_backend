@@ -134,7 +134,7 @@ private:
 class SimpleEncoder {
 public:
   ComPtr<ID3D11Device> pDevice;
-  ComPtr<ID3D11DeviceContext> pContext;
+  // ComPtr<ID3D11DeviceContext> pContext;
   ComPtr<IDXGIFactory1> pFactory;
   ComPtr<IDXGIAdapter> pAdapter;
   ComPtr<ID3D11Texture2D> pTexSysMem;
@@ -160,9 +160,12 @@ public:
     CreateDXGIFactory1(__uuidof(IDXGIFactory1),
                        (void **)pFactory.GetAddressOf());
     pFactory->EnumAdapters(iGpu, pAdapter.GetAddressOf());
+
+    ID3D11DeviceContext *pContext = nullptr;
     D3D11CreateDevice(pAdapter.Get(), D3D_DRIVER_TYPE_UNKNOWN, NULL, 0, NULL, 0,
                       D3D11_SDK_VERSION, pDevice.GetAddressOf(), NULL,
-                      pContext.GetAddressOf());
+                      &pContext);
+
     DXGI_ADAPTER_DESC adapterDesc;
     pAdapter->GetDesc(&adapterDesc);
     char szDesc[80];
@@ -217,7 +220,7 @@ public:
   }
   void ConvertHBitmapToTexture(HBITMAP hBitmap) {
 
-     std::vector<std::vector<uint8_t>> vPacket;
+    std::vector<std::vector<uint8_t>> vPacket;
     int nSize = nWidth * nHeight * 4;
     std::cout << "ConvertHBitmapToTexture" << std::endl;
     Gdiplus::GdiplusStartupInput gdiplusStartupInput;
@@ -228,23 +231,10 @@ public:
     Gdiplus::Rect rect(0, 0, bitmap->GetWidth(), bitmap->GetHeight());
     bitmap->LockBits(&rect, Gdiplus::ImageLockModeRead, PixelFormat32bppARGB,
                      &bitmapData);
-    // std::cout << "bitmap->GetWidth():" << bitmapData.Width << std::endl;
-    // std::cout << "bitmap->GetHeight():" << bitmapData.Height << std::endl;
-    D3D11_TEXTURE2D_DESC desc;
-    desc.Width = nWidth;
-    desc.Height = nHeight;
-    desc.MipLevels = 1;
-    desc.ArraySize = 1;
-    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-    desc.SampleDesc.Count = 1;
-    desc.SampleDesc.Quality = 0;
-    desc.Usage = D3D11_USAGE_DEFAULT;
-    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
-    desc.CPUAccessFlags = 0;
-    desc.MiscFlags = 0;
+
+
     ID3D11DeviceContext *pContext = nullptr;
     pDevice->GetImmediateContext(&pContext);
-    const NvEncInputFrame *encoderInputFrame = p_enc->GetNextInputFrame();
     D3D11_MAPPED_SUBRESOURCE map;
     ck(pContext->Map(pTexSysMem.Get(), D3D11CalcSubresource(0, 0, 1),
                      D3D11_MAP_WRITE, 0, &map));
@@ -253,10 +243,14 @@ public:
              (uint8_t *)bitmapData.Scan0 + y * nWidth * 4, nWidth * 4);
     }
     pContext->Unmap(pTexSysMem.Get(), D3D11CalcSubresource(0, 0, 1));
+
+    const NvEncInputFrame *encoderInputFrame = p_enc->GetNextInputFrame();
     ID3D11Texture2D *pTexBgra =
         reinterpret_cast<ID3D11Texture2D *>(encoderInputFrame->inputPtr);
     pContext->CopyResource(pTexBgra, pTexSysMem.Get());
     p_enc->EncodeFrame(vPacket);
+
+
     send_frame(vPacket);
     pContext->Release();
     bitmap->UnlockBits(&bitmapData);
