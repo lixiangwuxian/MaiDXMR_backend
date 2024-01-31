@@ -2,7 +2,7 @@
 #include <vector>
 #include <winsock2.h>
 
-// #pragma comment(lib, "Ws2_32.lib")
+#pragma comment(lib, "Ws2_32.lib")
 
 class UDPClient {
 public:
@@ -43,9 +43,8 @@ public:
     // sendData.insert(sendData.end(), padding.begin(), padding.end());
 
     // 发送组合后的数据
-    sendto(sock, reinterpret_cast<const char *>(data.data()),
-           data.size(), 0, reinterpret_cast<sockaddr *>(&serverAddr),
-           sizeof(serverAddr));
+    sendto(sock, reinterpret_cast<const char *>(data.data()), data.size(), 0,
+           reinterpret_cast<sockaddr *>(&serverAddr), sizeof(serverAddr));
   }
 
 private:
