@@ -2,7 +2,6 @@
 #of course, we don't use p2,so just ignore it
 import serial
 import threading
-import queue
 import time
 from bitarray import bitarray
 
@@ -14,7 +13,6 @@ class SerialManager:
     touch_data2 = bytearray([40, 0, 0, 0, 0, 0, 0, 0, 41])
     startup = False
     recived_data = ''
-    touch_queue = queue.Queue()
     shutdown=False
     gap=0.0
     def __init__(self,faq=120):
