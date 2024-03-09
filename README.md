@@ -31,6 +31,10 @@ You can find the output binary in `build/Release/` folder.
 
 PS: If it says `msbuild` not found, you need to add the path to `msbuild.exe` to your `PATH` environment variable. See `C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin`, you can add this path to your `PATH` environment variable. Or you can just open the Visual Studio 2022 IDE and build the solution there.
 
+## Debug the Cpp part
+
+Open this project with VS Code, and press `F5` to start debugging. Make sure you have already opened the `Sinmai.exe` window before you start debugging, or the program will crash.
+
 ## Run the Python part
 
 You need to install the following packages:

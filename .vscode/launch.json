@@ -8,7 +8,7 @@
             "name": "(Windows) 启动",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/Debug/DesktopCaptureApp.exe",
+            "program": "${workspaceFolder}/build/Debug/DesktopCaptureApp.exe",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${fileDirname}",
