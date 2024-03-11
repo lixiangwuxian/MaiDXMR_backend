@@ -2,6 +2,7 @@
 
 #include "NvEncoderD3D11.h"
 #include "VideoEncoder.h"
+#include "alvr_server/Settings.h"
 #include "shared/d3drender.h"
 #include <memory>
 
@@ -22,7 +23,7 @@ public:
   std::vector<std::vector<uint8_t>> Transmit(ID3D11Texture2D *pTexture,
                                              uint64_t presentationTime,
                                              uint64_t targetTimestampNs,
-                                             bool insertIDR,
+                                             bool insertIDR, bool insertSPSPPS,
                                              FfiDynamicEncoderParams params);
 
 private:

@@ -2,7 +2,6 @@
 #include "NvCodecUtils.h"
 
 #include "alvr_server/Logger.h"
-#include "alvr_server/Settings.h"
 
 VideoEncoderNVENC::VideoEncoderNVENC(std::shared_ptr<CD3DRender> pD3DRender,
                                      int width, int height, int bitrate)
@@ -23,10 +22,10 @@ void VideoEncoderNVENC::Initialize() {
   // Initialize Encoder
   //
 
-  NV_ENC_BUFFER_FORMAT format = NV_ENC_BUFFER_FORMAT_ABGR;
+  NV_ENC_BUFFER_FORMAT format = NV_ENC_BUFFER_FORMAT_ARGB; // todo
 
   if (Settings::Instance().m_use10bitEncoder) {
-    format = NV_ENC_BUFFER_FORMAT_ABGR10;
+    format = NV_ENC_BUFFER_FORMAT_ARGB10;
   }
 
   Debug("Initializing CNvEncoder. Width=%d Height=%d Format=%d\n",
@@ -54,6 +53,8 @@ void VideoEncoderNVENC::Initialize() {
       throw MakeException("This GPU does not support H.265 encoding. "
                           "(NvEncoderCuda NV_ENC_ERR_INVALID_PARAM)");
     }
+    printf("NvEnc CreateEncoder failed. Code=%d %hs\n", e.getErrorCode(),
+           e.what());
     throw MakeException("NvEnc CreateEncoder failed. Code=%d %hs",
                         e.getErrorCode(), e.what());
   }
@@ -87,7 +88,7 @@ std::vector<std::vector<uint8_t>>
 VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture,
                             uint64_t presentationTime,
                             uint64_t targetTimestampNs, bool insertIDR,
-                            FfiDynamicEncoderParams params) {
+                            bool insertSPSPPS, FfiDynamicEncoderParams params) {
   // auto params = GetDynamicEncoderParams();
   if (params.updated) {
     m_bitrateInMBits = params.bitrate_bps / 1'000'000;
@@ -115,15 +116,19 @@ VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture,
     Debug("Inserting IDR frame.\n");
     picParams.encodePicFlags = NV_ENC_PIC_FLAG_FORCEIDR;
   }
+  if (insertSPSPPS) {
+    Debug("Adding SPS&PPS Header");
+    picParams.encodePicFlags = NV_ENC_PIC_FLAG_OUTPUT_SPSPPS;
+  }
   m_NvNecoder->EncodeFrame(vPacket, &picParams);
 
   // for (std::vector<uint8_t> &packet : vPacket) {
-  //   if (fpOut) {
-  //     fpOut.write(reinterpret_cast<char *>(packet.data()), packet.size());
-  //   }
+  //   // if (fpOut) {
+  //   //   fpOut.write(reinterpret_cast<char *>(packet.data()), packet.size());
+  //   // }
 
-  //   ParseFrameNals(m_codec, packet.data(), (int)packet.size(),
-  //                  targetTimestampNs, insertIDR);
+  //   // ParseFrameNals(m_codec, packet.data(), (int)packet.size(),
+  //   //                targetTimestampNs, insertIDR);
   // }
   return vPacket;
 }
@@ -309,7 +314,7 @@ void VideoEncoderNVENC::FillEncodeConfig(
     encodeConfig.rcParams.rateControlMode =
         (NV_ENC_PARAMS_RC_MODE)Settings::Instance().m_nvencRateControlMode;
   }
-  if (Settings::Instance().m_nvencRcBufferSize != -1) {
+  if (Settings::Instance().m_nvencRateControlMode != -1) {
     encodeConfig.rcParams.vbvBufferSize =
         Settings::Instance().m_nvencRcBufferSize;
   }

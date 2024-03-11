@@ -4,6 +4,8 @@
 
 #include "bindings.h"
 
+#define ALVR_DEBUG_LOG
+
 void _log(const char *format, va_list args, void (*logFn)(const char *),
           bool driverLog = false) {
   char buf[1024];
@@ -47,14 +49,14 @@ void Info(const char *format, ...) {
 }
 
 void Debug(const char *format, ...) {
-#ifdef ALVR_DEBUG_LOG
+// #ifdef ALVR_DEBUG_LOG
   va_list args;
   va_start(args, format);
   vprintf(format, args);
   va_end(args);
-#else
-  (void)format;
-#endif
+// #else
+//   (void)format;
+// #endif
 }
 
 void LogPeriod(const char *tag, const char *format, ...) {

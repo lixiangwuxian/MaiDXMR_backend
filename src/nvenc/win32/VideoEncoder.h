@@ -14,6 +14,6 @@ public:
 
   virtual std::vector<std::vector<uint8_t>>
   Transmit(ID3D11Texture2D *pTexture, uint64_t presentationTime,
-           uint64_t targetTimestampNs, bool insertIDR,
+           uint64_t targetTimestampNs, bool insertIDR, bool insertSPSPPS,
            FfiDynamicEncoderParams params) = 0;
 };
