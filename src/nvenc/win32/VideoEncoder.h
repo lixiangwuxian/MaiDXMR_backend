@@ -2,7 +2,7 @@
 
 // #include "FfiDynamicEncoderParams.h"
 #include "NvEncoderD3D11.h"
-#include "alvr_server\bindings.h"
+#include "alvr_server/bindings.h"
 #include "shared/d3drender.h"
 #include <functional>
 #include <memory>

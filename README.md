@@ -31,6 +31,19 @@ You can find the output binary in `build/Release/` folder.
 
 PS: If you encounts the error `msbuild` not found, you have to add the path to `msbuild.exe` to your `PATH` environment variable. See `C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin`, you can add this path to your `PATH` environment variable. Or you can just open the Visual Studio 2022 IDE and build the solution there.
 
+## Cross-compile on Linux / macOS
+
+The program only runs on Windows (it captures the Sinmai window with GDI and encodes with NVENC through D3D11), but the `.exe` can be built without Windows using MinGW-w64:
+
+```bash
+# Ubuntu/Debian: sudo apt install mingw-w64 cmake
+# macOS:         brew install mingw-w64 cmake
+cmake -S . -B build-mingw -DCMAKE_TOOLCHAIN_FILE=cmake/mingw-w64-x86_64.cmake -DCMAKE_BUILD_TYPE=Release
+cmake --build build-mingw -j
+```
+
+The output `build-mingw/DesktopCaptureApp.exe` is statically linked and only depends on system DLLs, so it can be copied to the Windows PC as is.
+
 ## Debug the Cpp part
 
 Open this project with VS Code, and press `F5` to start debugging. Make sure you have already opened the `Sinmai.exe` window before you start debugging, or the program will crash.

@@ -14,7 +14,7 @@
 #include <dlfcn.h>
 #endif
 #include "NvEncoderD3D11.h"
-#include <D3D9Types.h>
+#include <d3d9types.h>
 
 #ifndef MAKEFOURCC
 #define MAKEFOURCC(a,b,c,d) (((unsigned int)a) | (((unsigned int)b)<< 8) | (((unsigned int)c)<<16) | (((unsigned int)d)<<24) )

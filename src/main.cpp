@@ -2,8 +2,8 @@
 // clang-format is bad..
 #include "bitBlt/bitBlt.h"
 #include "nvenc/win32/VideoEncoderNVENC.h"
-#include <GdiPlus.h>
-#include <Windows.h>
+#include <gdiplus.h>
+#include <windows.h>
 #include <mmsystem.h>
 #include <d3d11.h>
 #include <chrono>
@@ -70,8 +70,8 @@ public:
   void Start() {
     // Pace to the target frame rate instead of sleeping a fixed 20ms on top of
     // capture + encode time.
-    const auto frameInterval =
-        std::chrono::microseconds(1'000'000 / m_params.framerate);
+    const auto frameInterval = std::chrono::microseconds(
+        static_cast<long long>(1'000'000 / m_params.framerate));
     // Default Windows timer resolution is ~15.6ms, too coarse for 60fps.
     timeBeginPeriod(1);
     auto nextFrame = std::chrono::steady_clock::now();

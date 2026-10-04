@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include <windows.h>
 #include <string>
 // #include <windef.h>
 // #include <winuser.h>

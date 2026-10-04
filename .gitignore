@@ -30,3 +30,4 @@ src/out.h264
 .vscode/out.h264
 /pysrc/__pycache__
 /build
+/build-mingw
