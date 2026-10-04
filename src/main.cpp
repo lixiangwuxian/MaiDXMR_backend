@@ -4,8 +4,11 @@
 #include "nvenc/win32/VideoEncoderNVENC.h"
 #include <GdiPlus.h>
 #include <Windows.h>
+#include <mmsystem.h>
 #include <d3d11.h>
+#include <chrono>
 #include <iostream>
+#include <thread>
 #include <wrl.h>
 // #include <wrl/client.h>
 // adb logcat -s Unity
@@ -13,14 +16,16 @@
 
 #define WIN32
 
-#define OUTPUT_TO_FILE
+// #define OUTPUT_TO_FILE
 
 #pragma comment(lib, "GdiPlus.lib")
+#pragma comment(lib, "winmm.lib")
 using namespace Gdiplus;
 
 class MainMethod {
 public:
   MainMethod(const std::string &ip) {
+    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
     setEncoderParam();
     p_capturer = std::unique_ptr<DesktopCapturer>();
     p_capturer.reset(new DesktopCapturer());
@@ -48,7 +53,8 @@ public:
     desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
     pDevice->CreateTexture2D(&desc, NULL, pTexSysMem.GetAddressOf());
     p_enc = std::unique_ptr<VideoEncoderNVENC>(
-        new VideoEncoderNVENC(p_d3dRender, nWidth, nHeight));
+        new VideoEncoderNVENC(p_d3dRender, nWidth, nHeight,
+                              m_params.bitrate_bps / 1'000'000));
     p_enc->Initialize();
     p_udpClient = std::unique_ptr<UDPClient>(new UDPClient(ip, 10890));
 #ifdef OUTPUT_TO_FILE
@@ -59,22 +65,32 @@ public:
     p_enc->Shutdown();
     p_capturer.release();
     p_d3dRender.reset();
+    Gdiplus::GdiplusShutdown(gdiplusToken);
   }
   void Start() {
+    // Pace to the target frame rate instead of sleeping a fixed 20ms on top of
+    // capture + encode time.
+    const auto frameInterval =
+        std::chrono::microseconds(1'000'000 / m_params.framerate);
+    // Default Windows timer resolution is ~15.6ms, too coarse for 60fps.
+    timeBeginPeriod(1);
+    auto nextFrame = std::chrono::steady_clock::now();
     while (true) {
       ConvertHBitmapToTexture(p_capturer->StartCapture());
       nFrame++;
-      Sleep(1000 / 50);
+      nextFrame += frameInterval;
+      auto now = std::chrono::steady_clock::now();
+      if (nextFrame > now) {
+        std::this_thread::sleep_until(nextFrame);
+      } else {
+        nextFrame = now;
+      }
     }
   }
 
 private:
   void ConvertHBitmapToTexture(HBITMAP hBitmap) {
     // SaveHBITMAPToFile(hBitmap, L"test.bmp");
-    int nSize = nWidth * nHeight * 4;
-    Gdiplus::GdiplusStartupInput gdiplusStartupInput;
-    ULONG_PTR gdiplusToken;
-    GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL);
     Gdiplus::Bitmap *bitmap = Gdiplus::Bitmap::FromHBITMAP(hBitmap, NULL);
     Gdiplus::BitmapData bitmapData;
     Gdiplus::Rect rect(0, 0, bitmap->GetWidth(), bitmap->GetHeight());
@@ -91,27 +107,25 @@ private:
     std::vector<std::vector<uint8_t>> vPacket =
         p_enc->Transmit(*pTexSysMem.GetAddressOf(), 0, 0, nFrame % 2400 == 0,
                         nFrame % 500 == 0, m_params);
-    nFrame += (int)vPacket.size();
     for (std::vector<uint8_t> &packet : vPacket) {
 #ifdef OUTPUT_TO_FILE
       fpOut.write(reinterpret_cast<char *>(packet.data()), packet.size());
 #endif
       p_udpClient->send(packet);
-      std::cout << "packet.size():" << packet.size() << std::endl;
     }
     // pContext->Release();
     bitmap->UnlockBits(&bitmapData);
     delete bitmap;
-    Gdiplus::GdiplusShutdown(gdiplusToken);
   }
 
   void setEncoderParam() {
     Settings::Instance().m_codec = ALVR_CODEC_H264;
-    Settings::Instance().m_refreshRate = 120;
+    Settings::Instance().m_refreshRate = 60;
     Settings::Instance().m_use10bitEncoder = false;
     Settings::Instance().m_nvencQualityPreset = 1;
     Settings::Instance().m_rateControlMode = ALVR_CBR;
-    Settings::Instance().m_fillerData = true;
+    // Filler data only pads frames up to the CBR size: wasted bytes on Wi-Fi.
+    Settings::Instance().m_fillerData = false;
     Settings::Instance().m_entropyCoding = ALVR_CAVLC;
     Settings::Instance().m_nvencRefreshRate = -1;
     Settings::Instance().m_nvencMaxNumRefFrames = -1;
@@ -129,8 +143,10 @@ private:
     Settings::Instance().m_nvencEnableIntraRefresh = true;
     Settings::Instance().m_nvencTuningPreset = NV_ENC_TUNING_INFO_LOW_LATENCY;
     Settings::Instance().m_nvencEnableWeightedPrediction = false;
-    m_params.bitrate_bps = 30000000;
-    m_params.framerate = 120;
+    // Each encoded frame is sent as one UDP datagram (max 65507 bytes), so
+    // bitrate / framerate must stay well below that.
+    m_params.bitrate_bps = 20000000;
+    m_params.framerate = 60;
     m_params.updated = 0;
   }
 
@@ -149,6 +165,8 @@ private:
   int nHeight = 0;
   int nFrame = 0;
   std::ofstream fpOut;
+  Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+  ULONG_PTR gdiplusToken = 0;
   void static SaveHBITMAPToFile(HBITMAP hBitmap, LPCWSTR filename) {
     GdiplusStartupInput gdiplusStartupInput;
     ULONG_PTR gdiplusToken;

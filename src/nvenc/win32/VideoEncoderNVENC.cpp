@@ -118,7 +118,7 @@ VideoEncoderNVENC::Transmit(ID3D11Texture2D *pTexture,
   }
   if (insertSPSPPS) {
     Debug("Adding SPS&PPS Header");
-    picParams.encodePicFlags = NV_ENC_PIC_FLAG_OUTPUT_SPSPPS;
+    picParams.encodePicFlags |= NV_ENC_PIC_FLAG_OUTPUT_SPSPPS;
   }
   m_NvNecoder->EncodeFrame(vPacket, &picParams);
 
@@ -240,6 +240,7 @@ void VideoEncoderNVENC::FillEncodeConfig(
       config.enableFillerDataInsertion =
           Settings::Instance().m_rateControlMode == ALVR_CBR;
     }
+    break;
   }
   case ALVR_CODEC_HEVC: {
     auto &config = encodeConfig.encodeCodecConfig.hevcConfig;
@@ -265,6 +266,7 @@ void VideoEncoderNVENC::FillEncodeConfig(
       config.enableFillerDataInsertion =
           Settings::Instance().m_rateControlMode == ALVR_CBR;
     }
+    break;
   }
   case ALVR_CODEC_AV1: {
     // todo
