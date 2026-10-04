@@ -214,6 +214,9 @@ void VideoEncoderNVENC::FillEncodeConfig(
   case ALVR_CODEC_H264: {
     auto &config = encodeConfig.encodeCodecConfig.h264Config;
     config.repeatSPSPPS = 1;
+    // Write max_dec_frame_buffering / num_reorder_frames into the SPS. Without
+    // them Android decoders may hold back frames in case they get reordered.
+    config.h264VUIParameters.bitstreamRestrictionFlag = 1;
     config.enableIntraRefresh = Settings::Instance().m_nvencEnableIntraRefresh;
 
     if (Settings::Instance().m_nvencIntraRefreshPeriod != -1) {

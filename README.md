@@ -44,6 +44,19 @@ cmake --build build-mingw -j
 
 The output `build-mingw/DesktopCaptureApp.exe` is statically linked and only depends on system DLLs, so it can be copied to the Windows PC as is.
 
+## Test the headset app without the backend
+
+`tools/stream_test.py` uses ffmpeg to send the same kind of stream as `DesktopCaptureApp` (one H.264 frame per UDP datagram to port 10890), so the Quest app can be tested from Linux or macOS. It needs Python 3.8+ and ffmpeg with libx264 (`sudo apt install ffmpeg` / `brew install ffmpeg`).
+
+```bash
+python3 tools/stream_test.py <quest-ip>                  # test pattern with a counter
+python3 tools/stream_test.py <quest-ip> --source screen  # capture the desktop
+```
+
+With the test pattern, the status line shows the counter of the frame that was just sent. Compare it with the number shown in the headset (look at the monitor through passthrough): the difference divided by 100 is the latency in seconds. See `--help` for resolution, bitrate, cropping and other options.
+
+Screen capture uses x11grab on Linux (X11/XWayland windows only, so use the test pattern under Wayland), avfoundation on macOS (the terminal needs the Screen Recording permission) and gdigrab on Windows.
+
 ## Debug the Cpp part
 
 Open this project with VS Code, and press `F5` to start debugging. Make sure you have already opened the `Sinmai.exe` window before you start debugging, or the program will crash.
